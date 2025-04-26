@@ -1,27 +1,43 @@
-document.addEventListener('DOMContentLoaded', () => {
-  // 1) Render the top-4 tasks
-  const tasks = [
-    { rank: 1, title: 'Hello World', payout: '5 fake' },
-    { rank: 2, title: 'Dummy Task 1', payout: '4 ETH' },
-    { rank: 3, title: 'Dummy Task 2', payout: '3 ETH' },
-    { rank: 4, title: 'Dummy Task 3', payout: '2 ETH' },
-  ];
-  const list = document.getElementById('rankingList');
-  tasks.forEach(t => {
-    const li = document.createElement('li');
-    li.textContent = `#${t.rank} – ${t.title} (${t.payout})`;
-    list.appendChild(li);
-  });
+// popup.js
+const REPO = 'DDjohnson21/testRepo';
+const DEFAULT_PAYOUT = '5 ETH';
 
-  // 2) Wire up your “Add task” button
-  const btn = document.getElementById('addTask');
-  if (btn) {
-    btn.addEventListener('click', () => {
-      chrome.storage.local.get('count', data => {
-        let c = (data.count || 0) + 1;
-        chrome.storage.local.set({ count: c });
-        alert(`Clicked ${c} times`);
-      });
-    });
+async function fetchOpenIssues() {
+  const res = await fetch(
+    `https://api.github.com/repos/${REPO}/issues?state=open&sort=created&direction=desc`
+  );
+  if (!res.ok) throw new Error(res.statusText);
+  return res.json();
+}
+
+function renderIssues(issues) {
+  const ul = document.getElementById('rankingList');
+  ul.innerHTML = '';
+
+  if (issues.length === 0) {
+    const li = document.createElement('li');
+    li.textContent = 'No open issues';
+    ul.appendChild(li);
+    return;
   }
+
+  issues.forEach((issue, idx) => {
+    const li = document.createElement('li');
+    // You can rank them by creation order (1 = newest), or show the issue number:
+    li.textContent = `#${idx + 1} – ${issue.title} (Issue #${issue.number}, ${DEFAULT_PAYOUT})`;
+    ul.appendChild(li);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  let issues = [];
+  try {
+    issues = await fetchOpenIssues();
+  } catch (e) {
+    console.error('GitHub API error', e);
+  }
+  renderIssues(issues);
+
+  // Optional: keep your “Add/Pin” button if you still want manual overrides:
+  document.getElementById('addTask').style.display = 'none';
 });

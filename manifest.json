@@ -1,20 +1,15 @@
 {
-    "manifest_version": 3,
-    "name": "osversion-control",
-    "version": "1.0",
-    "description": "A simple Hello-World Chrome extension",
-    
-    "action": {
-      "default_popup": "popup.html",
-      "default_icon": {
-       
-      }
-    },
-    
-
-  
-    "permissions": [
-      "storage",
-      "activeTab"
-    ]
-  }
+  "manifest_version": 3,
+  "name": "osversion-control",
+  "version": "1.0",
+  "description": "Decentralized bounty task rankings for GitHub issues",
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://api.github.com/repos/DDjohnson21/testRepo/issues*"
+  ]
+}

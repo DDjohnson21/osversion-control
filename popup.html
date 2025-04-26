@@ -1,14 +1,41 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <style>
-      body { width:200px; font-family: sans-serif; padding:10px; }
-      button { margin-top:10px; }
-    </style>
-  </head>
-  <body>
-    <h4>Hello, world!</h4>
-    <button id="clickme">Click me</button>
-    <script src="popup.js"></script>
-  </body>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task Ranking</title>
+  <style>
+    body {
+      background-color: #000;
+      color: #fff;
+      font-family: sans-serif;
+      margin: 0;
+      padding: 16px;
+      min-width: 320px;
+    }
+    h4 { margin: 0 0 8px; font-size: 16px; }
+    .section { margin-bottom: 16px; }
+    #rankingList { list-style: none; padding: 0; margin: 0 0 8px; }
+    #rankingList li { margin-bottom: 4px; }
+    .add-task {
+      display: flex; align-items: center; cursor: pointer;
+    }
+    .add-task button {
+      background: none; border: 1px solid #fff;
+      color: #fff; padding: 2px 6px; margin-right: 8px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="section">
+    <h4>Task Ranking</h4>
+    <ul id="rankingList"></ul>
+    <div class="add-task">
+      <button id="addTask">+</button>
+      <span>Add/Pin Issue</span>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
 </html>

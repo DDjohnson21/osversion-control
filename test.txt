@@ -74,7 +74,11 @@
 <body>
   <div class="section ranking">
     <h4>Task Ranking</h4>
-    <ul id="rankingList"></ul>
+    <ul>
+      <li>#1 – Initial PR review</li>
+      <li>#2 – Code cleanup</li>
+      <li>#3 – Testing</li>
+    </ul>
     <div class="add-task">
       <button id="addTask">+</button>
       <span>Add task</span>
@@ -91,24 +95,6 @@
       <span class="timestamp">2 week ago</span>
     </div>
   </div>
-
-  <script>
-    // Populate top-4 tasks dynamically (dummy data for now)
-    document.addEventListener('DOMContentLoaded', () => {
-      const tasks = [
-        { rank: 1, title: 'Hello World', payout: '5 ETH' },
-        { rank: 2, title: 'Dummy Task 1', payout: '4 ETH' },
-        { rank: 3, title: 'Dummy Task 2', payout: '3 ETH' },
-        { rank: 4, title: 'Dummy Task 3', payout: '2 ETH' },
-      ];
-      const list = document.getElementById('rankingList');
-      tasks.forEach(t => {
-        const li = document.createElement('li');
-        li.textContent = `#${t.rank} – ${t.title} (${t.payout})`;
-        list.appendChild(li);
-      });
-    });
-  </script>
   <script src="popup.js"></script>
 </body>
 </html>

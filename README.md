@@ -65,4 +65,4 @@ osversion-control/
 
 ## Demo Video
 
-Demo_before_cut.mov
+[Demo_before_cut.mov](https://github.com/DDjohnson21/osversion-control/blob/main/Demo_before_cut.mov)

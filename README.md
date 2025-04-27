@@ -63,6 +63,7 @@ osversion-control/
    yarn hardhat deploy --network polkadot
    ```
 
-## Demo Video
 
-[INSERT_DEMO_VIDEO_LINK]
+
+## Demo Video
+![ezgif-39baa59892f358](https://github.com/user-attachments/assets/ea095b7e-8e93-45b9-ac1e-df9e703dbe4a)

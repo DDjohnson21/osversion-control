@@ -18,19 +18,21 @@ Our smart contract, `StakingInterface.sol`, implements the following key feature
 
 ## Project Structure
 
+```
 osversion-control/
-├── src/ # Frontend React application
-│ ├── components/ # React components
-│ ├── assets/ # Static assets
-│ └── App.jsx # Main application component
-├── backend/ # Backend services
-│ ├── hardhat/ # Smart contract development
-│ │ ├── contracts/ # Solidity contracts
-│ │ ├── scripts/ # Deployment scripts
-│ │ └── test/ # Contract tests
-│ └── webhook-server/ # Webhook server for notifications
-├── public/ # Public assets
-└── dist/ # Build output
+├── src/                  # Frontend React application
+│   ├── components/       # React components
+│   ├── assets/           # Static assets
+│   └── App.jsx           # Main application component
+├── backend/              # Backend services
+│   ├── hardhat/          # Smart contract development
+│   │   ├── contracts/    # Solidity contracts
+│   │   ├── scripts/      # Deployment scripts
+│   │   └── test/         # Contract tests
+│   └── webhook-server/   # Webhook server for notifications
+├── public/               # Public assets
+└── dist/                 # Build output
+```
 
 ## Features
 

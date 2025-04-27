@@ -44,7 +44,7 @@ osversion-control/
 
 ## Screenshots
 
-[INSERT_SCREENSHOTS_HERE]
+![Donate](Donate.png)
 
 ## Getting Started
 

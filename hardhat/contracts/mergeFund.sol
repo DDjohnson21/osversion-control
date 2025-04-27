@@ -58,7 +58,10 @@ contract MergeFund {
     }
 
     function closeIssue(uint256 issueId, address solver_address) external onlyOwner {
-        require(issues[issueId].isOpen, "Issue already closed");
+        if (!issues[issueId].isOpen) {
+            // Already closed, don't revert, just exit
+            return;
+        }
 
         issues[issueId].isOpen = false;
         issues[issueId].solver_address = solver_address;
@@ -66,7 +69,6 @@ contract MergeFund {
         // Request unstaking
         staking.schedule_revoke_delegation(collatorPoolAddress);
 
-        //  Emit IssueSolved event
         emit IssueSolved(issueId, solver_address);
     }
 

@@ -1,7 +1,7 @@
 const { ethers } = require("hardhat");
 
 async function main() {
-  const contractAddress = "0x764EfD69a3c9Ed154Daf7184b8077d977E10f309"; // replace if different
+  const contractAddress = "0xe4705fc67596CF9904B9F6Ea5d8E469a1F9B9aC4"; // replace if different
   const [deployer] = await ethers.getSigners();
 
   console.log("Deployer address:", deployer.address);
@@ -16,7 +16,7 @@ async function main() {
     console.log("Couldn't fetch contract owner. Maybe no 'owner()' function?");
   }
 
-  const issueId = 6;
+  const issueId = 10;
   const amount = ethers.parseEther("0.0001");
 
   console.log("Attempting to pledge for Issue ID:", issueId);

@@ -6,7 +6,7 @@ import "./StakingInterface.sol";
 contract MergeFund {
     ParachainStaking public staking;
     address public collatorPoolAddress;
-    address public owner;
+    address public owner; 
 
     struct Issue {
         uint256 totalPledged;
@@ -16,6 +16,12 @@ contract MergeFund {
 
     mapping(uint256 => Issue) public issues; // GitHub Issue ID => Issue info
     mapping(uint256 => mapping(address => uint256)) public pledges; // Issue ID => user => amount
+
+    //  New: Declare events
+    event IssueOpened(uint256 issueId);
+    event Pledged(uint256 issueId, address pledger, uint256 amount);
+    event IssueSolved(uint256 issueId, address solver);
+    event Refunded(uint256 issueId, address pledger, uint256 amount);
 
     constructor(address stakingPrecompileAddress, address _collatorPoolAddress) {
         staking = ParachainStaking(stakingPrecompileAddress);
@@ -38,11 +44,17 @@ contract MergeFund {
         // Record the pledge
         pledges[issueId][msg.sender] += msg.value;
         issues[issueId].totalPledged += msg.value;
+
+        //  Emit Pledged event
+        emit Pledged(issueId, msg.sender, msg.value);
     }
 
     function openIssue(uint256 issueId) external onlyOwner {
         require(!issues[issueId].isOpen, "Issue already open");
         issues[issueId].isOpen = true;
+
+        //  Emit IssueOpened event
+        emit IssueOpened(issueId);
     }
 
     function closeIssue(uint256 issueId, address solver_address) external onlyOwner {
@@ -53,6 +65,9 @@ contract MergeFund {
 
         // Request unstaking
         staking.schedule_revoke_delegation(collatorPoolAddress);
+
+        //  Emit IssueSolved event
+        emit IssueSolved(issueId, solver_address);
     }
 
     function finalizePayout(uint256 issueId) external onlyOwner {
@@ -68,5 +83,22 @@ contract MergeFund {
 
         // Clean up
         issue.totalPledged = 0;
+    }
+
+    //  New: Refund function
+    function refund(uint256 issueId) external {
+        require(!issues[issueId].isOpen, "Issue still open");
+
+        uint256 refundAmount = pledges[issueId][msg.sender];
+        require(refundAmount > 0, "No pledge to refund");
+
+        // Clear the pledge first (checks-effects-interactions pattern)
+        pledges[issueId][msg.sender] = 0;
+
+        // Refund ETH
+        payable(msg.sender).transfer(refundAmount);
+
+        //  Emit Refunded event
+        emit Refunded(issueId, msg.sender, refundAmount);
     }
 }

@@ -65,4 +65,4 @@ osversion-control/
 
 ## Demo Video
 
-[INSERT_DEMO_VIDEO_LINK]
+Demo_before_cut.mov

@@ -83,12 +83,10 @@ contract MergeFund {
         emit PayoutFinalized(issueId, issue.solver_address, amount);
     }
 
-
     // Helper to get contract balance
     function getContractBalance() external view returns (uint256) {
         return address(this).balance;
     }
 
-    // NEW: Allow this contract to accept DEV tokens
     receive() external payable {}
 }

@@ -18,7 +18,6 @@ Our smart contract, `StakingInterface.sol`, implements the following key feature
 
 ## Project Structure
 
-`
 osversion-control/
 ├── src/ # Frontend React application
 │ ├── components/ # React components

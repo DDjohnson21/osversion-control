@@ -1,12 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.0;
 
-import "./StakingInterface.sol";
-
 contract MergeFund {
-    ParachainStaking public staking;
-    address public collatorPoolAddress;
-    address public owner; 
+    address public owner;
 
     struct Issue {
         uint256 totalPledged;
@@ -17,15 +13,12 @@ contract MergeFund {
     mapping(uint256 => Issue) public issues; // GitHub Issue ID => Issue info
     mapping(uint256 => mapping(address => uint256)) public pledges; // Issue ID => user => amount
 
-    //  New: Declare events
     event IssueOpened(uint256 issueId);
     event Pledged(uint256 issueId, address pledger, uint256 amount);
-    event IssueSolved(uint256 issueId, address solver);
-    event Refunded(uint256 issueId, address pledger, uint256 amount);
+    event IssueClosed(uint256 issueId, address solver);
+    event PayoutFinalized(uint256 issueId, address solver, uint256 amount);
 
-    constructor(address stakingPrecompileAddress, address _collatorPoolAddress) {
-        staking = ParachainStaking(stakingPrecompileAddress);
-        collatorPoolAddress = _collatorPoolAddress;
+    constructor() {
         owner = msg.sender;
     }
 
@@ -34,73 +27,68 @@ contract MergeFund {
         _;
     }
 
+    // Open a new Issue
+    function openIssue(uint256 issueId) external onlyOwner {
+        require(!issues[issueId].isOpen, "Issue already open");
+
+        issues[issueId] = Issue({
+            totalPledged: 0,
+            isOpen: true,
+            solver_address: address(0)
+        });
+
+        emit IssueOpened(issueId);
+    }
+
+    // Allow pledging ETH/DEV tokens toward an open issue
     function pledge(uint256 issueId) external payable {
         require(issues[issueId].isOpen, "Issue closed");
         require(msg.value > 0, "Must pledge > 0");
 
-        // Stake the pledged amount
-        staking.delegate(collatorPoolAddress, msg.value, 0, 0);
-
-        // Record the pledge
-        pledges[issueId][msg.sender] += msg.value;
         issues[issueId].totalPledged += msg.value;
+        pledges[issueId][msg.sender] += msg.value;
 
-        //  Emit Pledged event
         emit Pledged(issueId, msg.sender, msg.value);
     }
 
-    function openIssue(uint256 issueId) external onlyOwner {
-        require(!issues[issueId].isOpen, "Issue already open");
-        issues[issueId].isOpen = true;
-
-        //  Emit IssueOpened event
-        emit IssueOpened(issueId);
-    }
-
-    function closeIssue(uint256 issueId, address solver_address) external onlyOwner {
-        if (!issues[issueId].isOpen) {
-            // Already closed, don't revert, just exit
-            return;
-        }
+    // Close an issue and set the solver address
+    function closeIssue(uint256 issueId, address solver) external onlyOwner {
+        require(issues[issueId].isOpen, "Issue already closed");
+        require(solver != address(0), "Solver address cannot be zero");
 
         issues[issueId].isOpen = false;
-        issues[issueId].solver_address = solver_address;
+        issues[issueId].solver_address = solver;
 
-        // Request unstaking
-        staking.schedule_revoke_delegation(collatorPoolAddress);
-
-        emit IssueSolved(issueId, solver_address);
+        emit IssueClosed(issueId, solver);
     }
 
+    // Finalize payout to solver based on the pledged balance
     function finalizePayout(uint256 issueId) external onlyOwner {
         Issue storage issue = issues[issueId];
+
         require(!issue.isOpen, "Issue still open");
-        require(issue.solver_address != address(0), "No solver_address assigned");
+        require(issue.solver_address != address(0), "No solver set");
 
-        // Execute the delegation revoke to get tokens back
-        staking.execute_delegation_request(address(this), collatorPoolAddress);
+        uint256 amount = issue.totalPledged;
+        require(amount > 0, "No funds to payout");
+        require(address(this).balance >= amount, "Contract has insufficient funds");
 
-        // Pay the solver_address (for simplicity assuming balance already unlocked)
-        payable(issue.solver_address).transfer(issue.totalPledged);
-
-        // Clean up
+        // Reset first (protect from reentrancy)
         issue.totalPledged = 0;
+
+        // Actually send the pledged amount
+        (bool success, ) = payable(issue.solver_address).call{value: amount}("");
+        require(success, "Failed to send Ether");
+
+        emit PayoutFinalized(issueId, issue.solver_address, amount);
     }
 
-    //  New: Refund function
-    function refund(uint256 issueId) external {
-        require(!issues[issueId].isOpen, "Issue still open");
 
-        uint256 refundAmount = pledges[issueId][msg.sender];
-        require(refundAmount > 0, "No pledge to refund");
-
-        // Clear the pledge first (checks-effects-interactions pattern)
-        pledges[issueId][msg.sender] = 0;
-
-        // Refund ETH
-        payable(msg.sender).transfer(refundAmount);
-
-        //  Emit Refunded event
-        emit Refunded(issueId, msg.sender, refundAmount);
+    // Helper to get contract balance
+    function getContractBalance() external view returns (uint256) {
+        return address(this).balance;
     }
+
+    // NEW: Allow this contract to accept DEV tokens
+    receive() external payable {}
 }

@@ -6,10 +6,7 @@ async function main() {
 
   const MergeFund = await hre.ethers.getContractFactory("MergeFund");
 
-  const stakingPrecompileAddress = "0x0000000000000000000000000000000000000000"; // dummy
-  const collatorPoolAddress = "0x0000000000000000000000000000000000000000";  // dummy
-
-  const mergeFund = await MergeFund.deploy(stakingPrecompileAddress, collatorPoolAddress);
+  const mergeFund = await MergeFund.deploy();
   await mergeFund.waitForDeployment();
 
   console.log(`MergeFund deployed to: ${mergeFund.target || mergeFund.address}`);

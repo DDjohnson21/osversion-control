@@ -1,8 +1,22 @@
 require("@nomicfoundation/hardhat-ethers");
 require("@nomicfoundation/hardhat-chai-matchers");
 
+require('hardhat-resolc');
+require('hardhat-revive-node');
+
 module.exports = {
   solidity: "0.8.20",
+  resolc: {
+    version: '1.5.2',
+    compilerSource: 'remix',
+    settings: {
+      optimizer: {
+        enabled: false,
+        runs: 600,
+      },
+      evmVersion: 'istanbul',
+    },
+  },
   networks: {
     moonbase: {
       url: "https://rpc.api.moonbase.moonbeam.network",

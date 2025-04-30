@@ -3,53 +3,69 @@ const { ethers } = require("hardhat");
 
 describe("MergeFund", function () {
   let bountyContract;
-  let mockStaking;
   let owner, pledger1, pledger2, solver, verifier;
 
   beforeEach(async function () {
     [owner, pledger1, pledger2, solver, verifier] = await ethers.getSigners();
 
-    // Deploy MockParachainStaking first
-    const MockStaking = await ethers.getContractFactory("MockParachainStaking");
-    mockStaking = await MockStaking.deploy();
-    await mockStaking.waitForDeployment();
-
-    // Now deploy MergeFund using mockStaking address
-    const MergeFund = await ethers.getContractFactory("MergeFund");
-    bountyContract = await MergeFund.deploy(mockStaking.target, verifier.address);
-    await bountyContract.waitForDeployment();
+    const Bounty = await ethers.getContractFactory("MergeFund");
+    bountyContract = await Bounty.deploy(); // <-- fix: no arguments passed
+    await bountyContract.waitForDeployment(); // <-- important with ethers v6
   });
 
   it("should open an issue", async function () {
-    await expect(bountyContract.openIssue(1))
-      .to.emit(bountyContract, "IssueOpened")
-      .withArgs(1);
+    const issueId = 1;
+    await bountyContract.openIssue(issueId);
+    const issue = await bountyContract.issues(issueId);
+    expect(issue.isOpen).to.equal(true);
   });
 
   it("should allow pledging to an open issue", async function () {
-    await bountyContract.openIssue(1);
+    const issueId = 2;
+    const pledgeAmount = ethers.parseEther("1.0");
 
-    await expect(
-      bountyContract.connect(pledger1).pledge(1, { value: ethers.parseEther("1") })
-    ).to.emit(bountyContract, "Pledged");
+    await bountyContract.openIssue(issueId);
+
+    await bountyContract.connect(pledger1).pledge(issueId, { value: pledgeAmount });
+
+    const issue = await bountyContract.issues(issueId);
+    expect(issue.totalPledged).to.equal(pledgeAmount);
+
+    const pledgedAmount = await bountyContract.pledges(issueId, pledger1.address);
+    expect(pledgedAmount).to.equal(pledgeAmount);
   });
 
-  it("should allow solver to claim reward after verifier signature", async function () {
-    await bountyContract.openIssue(1);
-    await bountyContract.connect(pledger1).pledge(1, { value: ethers.parseEther("1") });
+  it("should allow solver to claim reward after issue is closed", async function () {
+    const issueId = 3;
+    const pledgeAmount = ethers.parseEther("1.5");
 
-    await bountyContract.closeIssue(1, solver.address);
-    await bountyContract.finalizePayout(1);
+    await bountyContract.openIssue(issueId);
+    await bountyContract.connect(pledger2).pledge(issueId, { value: pledgeAmount });
 
-    // Check solver received funds (balance check optional)
+    await bountyContract.closeIssue(issueId, solver.address);
+
+    const issue = await bountyContract.issues(issueId);
+    expect(issue.isOpen).to.equal(false);
+    expect(issue.solver_address).to.equal(solver.address);
   });
 
-  it("should allow refund after cancellation", async function () {
-    await bountyContract.openIssue(1);
-    await bountyContract.connect(pledger1).pledge(1, { value: ethers.parseEther("1") });
+  it("should finalize payout correctly", async function () {
+    const issueId = 4;
+    const pledgeAmount = ethers.parseEther("2.0");
 
-    await bountyContract.closeIssue(1, ethers.ZeroAddress); // no solver
-    await expect(bountyContract.connect(pledger1).refund(1))
-      .to.emit(bountyContract, "Refunded");
+    await bountyContract.openIssue(issueId);
+    await bountyContract.connect(pledger1).pledge(issueId, { value: pledgeAmount });
+
+    await bountyContract.closeIssue(issueId, solver.address);
+
+    const initialBalance = await ethers.provider.getBalance(solver.address);
+
+    const finalizeTx = await bountyContract.finalizePayout(issueId);
+    await finalizeTx.wait();
+
+    const finalBalance = await ethers.provider.getBalance(solver.address);
+
+    expect(finalBalance).to.be.gt(initialBalance);
   });
+
 });

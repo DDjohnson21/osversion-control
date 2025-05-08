@@ -1,4 +1,4 @@
-# MergeFUnd
+# MergeFund
 
 A decentralized version control system built on Polkadot Asset Hub that enables secure and transparent management of operating system updates and configurations.
 

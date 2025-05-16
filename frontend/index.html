@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MergeFund Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        input {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>MergeFund Interface</h1>
+        
+        <div class="section">
+            <h2>Open Issue</h2>
+            <input type="number" id="openIssueId" placeholder="Issue ID">
+            <button onclick="openIssue()">Open Issue</button>
+        </div>
+
+        <div class="section">
+            <h2>Pledge to Issue</h2>
+            <input type="number" id="pledgeIssueId" placeholder="Issue ID">
+            <input type="text" id="pledgeAmount" placeholder="Amount in ETH">
+            <button onclick="pledge()">Pledge</button>
+        </div>
+
+        <div class="section">
+            <h2>Close Issue</h2>
+            <input type="number" id="closeIssueId" placeholder="Issue ID">
+            <input type="text" id="solverAddress" placeholder="Solver Address">
+            <button onclick="closeIssue()">Close Issue</button>
+        </div>
+
+        <div class="section">
+            <h2>Finalize Payout</h2>
+            <input type="number" id="payoutIssueId" placeholder="Issue ID">
+            <button onclick="finalizePayout()">Finalize Payout</button>
+        </div>
+
+        <div class="section">
+            <h2>Check Issue Status</h2>
+            <input type="number" id="statusIssueId" placeholder="Issue ID">
+            <button onclick="checkStatus()">Check Status</button>
+            <div id="statusResult" class="status"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3001';
+
+        async function openIssue() {
+            const issueId = document.getElementById('openIssueId').value;
+            try {
+                const response = await fetch(`${API_URL}/api/open-issue`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ issueId: parseInt(issueId) })
+                });
+                const data = await response.json();
+                alert(data.success ? 'Issue opened successfully!' : data.error);
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        async function pledge() {
+            const issueId = document.getElementById('pledgeIssueId').value;
+            const amount = document.getElementById('pledgeAmount').value;
+            try {
+                const response = await fetch(`${API_URL}/api/pledge`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        issueId: parseInt(issueId),
+                        amount: amount
+                    })
+                });
+                const data = await response.json();
+                alert(data.success ? 'Pledge successful!' : data.error);
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        async function closeIssue() {
+            const issueId = document.getElementById('closeIssueId').value;
+            const solverAddress = document.getElementById('solverAddress').value;
+            try {
+                const response = await fetch(`${API_URL}/api/close-issue`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        issueId: parseInt(issueId),
+                        solverAddress: solverAddress
+                    })
+                });
+                const data = await response.json();
+                alert(data.success ? 'Issue closed successfully!' : data.error);
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        async function finalizePayout() {
+            const issueId = document.getElementById('payoutIssueId').value;
+            try {
+                const response = await fetch(`${API_URL}/api/finalize-payout`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ issueId: parseInt(issueId) })
+                });
+                const data = await response.json();
+                alert(data.success ? 'Payout finalized successfully!' : data.error);
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        async function checkStatus() {
+            const issueId = document.getElementById('statusIssueId').value;
+            try {
+                const response = await fetch(`${API_URL}/api/issue/${issueId}`);
+                const data = await response.json();
+                const statusDiv = document.getElementById('statusResult');
+                statusDiv.innerHTML = `
+                    <p>Total Pledged: ${data.totalPledged} ETH</p>
+                    <p>Is Open: ${data.isOpen}</p>
+                    <p>Solver Address: ${data.solverAddress}</p>
+                    <p>Is Paid Out: ${data.isPaidOut}</p>
+                `;
+                statusDiv.className = 'status success';
+            } catch (error) {
+                const statusDiv = document.getElementById('statusResult');
+                statusDiv.innerHTML = 'Error: ' + error.message;
+                statusDiv.className = 'status error';
+            }
+        }
+    </script>
+</body>
+</html> 
